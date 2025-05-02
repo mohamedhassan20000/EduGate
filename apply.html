@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduGate | Apply</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body class="main-bg">
+  <header class="d-flex justify-content-between align-items-center px-4 py-3 shadow bg-white">
+    <a href="home.html" class="d-flex align-items-center text-decoration-none text-dark">
+      <img src="logo.png" alt="EduGate Logo" style="width: 50px;" />
+      <span class="ms-2 fw-bold fs-5">EduGate</span>
+    </a>
+    <h4 class="m-0 text-center flex-grow-1 fw-bold">
+      <i class="fa-solid fa-house-circle-check bg-info p-2 rounded-circle text-white me-2"></i>
+      <span>Resit <span class="text-primary">Exam</span></span>
+    </h4>
+    <div class="d-flex gap-2">
+      <a href="profile.html" class="btn btn-primary rounded-pill">
+        <i class="fa-solid fa-user me-1"></i> My Profile
+      </a>
+    </div>
+  </header>
+
+  <main class="page-bg d-flex justify-content-center align-items-center flex-column py-5">
+    <div class="p-4 rounded-4 shadow" style="width: 95%; max-width: 800px; background-color: #94d0ff;">
+      <h5 class="fw-bold mb-4">Apply For Resit Exam</h5>
+
+      <form class="d-flex flex-column gap-3">
+        <div>
+          <label class="form-label">Course Code</label>
+          <input id="courseCode" type="text" class="form-control fw-bold" disabled />
+        </div>
+
+        <div>
+          <label class="form-label">Letter</label>
+          <input id="gradeField" type="text" class="form-control fw-bold" disabled />
+        </div>
+        <div>
+          <label class="form-label">Exam Time</label>
+          <input id="examTime" type="text" class="form-control fw-bold" value="12:40 pm" disabled />
+        </div>
+        <div>
+          <label class="form-label">Exam Date</label>
+          <input id="examDate" type="text" class="form-control fw-bold" value="2025-04-25" disabled />
+        </div>
+        <div>
+          <label class="form-label">Room</label>
+          <input id="roomField" type="text" class="form-control fw-bold" value="Room 204" disabled placeholder="To be set by Instructor" />
+        </div>
+        <div>
+          <label class="form-label">Exam Details</label>
+          <div class="bg-white p-3 rounded fw-semibold" id="examDetailsBox">
+            <span class="text-muted">Final Retake Exam</span>
+          </div>
+        </div>
+        <button type="button" onclick="submitApplication()" class="btn btn-light fw-bold mt-4 w-100 rounded-pill">
+          Apply
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="init.js"></script>
+
+  <script>
+    // 🔥 حماية الصفحة - تأكيد أن اليوزر Student فقط
+    const userType = localStorage.getItem("userType");
+    if (userType !== "student") {
+      window.location.href = "index.html"; // خليه يرجعه للـ Login مش للـ Home
+    }
+   
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseCode = urlParams.get("course");
+    const studentGrade = urlParams.get("grade") || "FF";
+  
+    const studentName = localStorage.getItem("studentName") || "Student";
+    const studentNumber = localStorage.getItem("studentNumber") || "000000";
+  
+    document.getElementById("courseCode").value = courseCode || "N/A";
+    document.getElementById("gradeField").value = studentGrade || "N/A";
+  
+    // ✅ جلب تفاصيل الامتحان من صفحة Resit Exam Details حسب الكورس
+    const allExamDetails = JSON.parse(localStorage.getItem("examDetails")) || {};
+    if (courseCode && allExamDetails[courseCode]) {
+      const details = allExamDetails[courseCode];
+      document.getElementById("examTime").value = details.time || "N/A";
+      document.getElementById("examDate").value = details.date || "2025-04-25";
+      document.getElementById("roomField").value = details.room || "N/A";
+      document.getElementById("examDetailsBox").innerText = details.description || "";
+    }
+  
+    function submitApplication() {
+      if (!courseCode) return;
+  
+      let appliedCourses = JSON.parse(localStorage.getItem("appliedCourses")) || [];
+      if (!appliedCourses.includes(courseCode)) {
+        appliedCourses.push(courseCode);
+        localStorage.setItem("appliedCourses", JSON.stringify(appliedCourses));
+      }
+  
+      let resitList = JSON.parse(localStorage.getItem("resitApplied")) || [];
+      resitList = resitList.filter(item => !(item.name === studentName && item.course === courseCode));
+      resitList.push({
+        name: studentName,
+        grade: studentGrade,
+        number: studentNumber,
+        course: courseCode,
+        confirmed: false
+      });
+      localStorage.setItem("resitApplied", JSON.stringify(resitList));
+  
+      // ✅ حفظ بيانات الامتحان كما ظهرت للمستخدم
+      const examDetails = JSON.parse(localStorage.getItem("examDetails")) || {};
+      examDetails[courseCode] = {
+        time: document.getElementById("examTime").value,
+        date: document.getElementById("examDate").value,
+        room: document.getElementById("roomField").value,
+        description: document.getElementById("examDetailsBox").innerText.trim()
+      };
+      localStorage.setItem("examDetails", JSON.stringify(examDetails));
+  
+      window.location.href = "student_courses.html";
+    }
+  
+  
+  </script>
+</body>
+</html>

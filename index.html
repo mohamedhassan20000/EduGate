@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduGate | Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body class="main-bg">
+  <div class="login-page d-flex flex-column justify-content-center align-items-center vh-100" style="padding: 40px 0;">
+    <div class="logo-area mb-4">
+      <img src="logo.png" alt="EduGate Logo" style="width: 200px;" />
+    </div>
+    <h4 class="text-primary fw-bold mb-5" style="font-size: 1.6rem;">Enter your Account Info</h4>
+    <form onsubmit="redirectToDashboard(event)" class="login-form w-100 px-3" style="max-width: 600px;">
+      <div class="input-group mb-4">
+        <input type="email" class="form-control form-control-lg" id="emailInput" placeholder="Enter Your Email" required />
+        <span class="input-group-text bg-light"><i class="fa-solid fa-envelope"></i></span>
+      </div>
+      <div class="input-group mb-3">
+        <input type="password" class="form-control form-control-lg" id="passwordInput" placeholder="Enter Your Password" required />
+        <span class="input-group-text bg-light"><i class="fa-solid fa-lock"></i></span>
+      </div>
+      <div class="text-start mb-4">
+        <a href="#" class="text-decoration-none text-dark small" data-bs-toggle="modal" data-bs-target="#resetModal">Forgot Password?</a>
+      </div>
+      <button type="submit" class="btn btn-light fw-bold px-5 py-3 rounded-pill w-100 fs-5">Login</button>
+    </form>
+  </div>
+
+  <!-- Modal: Forgot Password -->
+  <div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-4">
+        <h5 class="fw-bold">Reset Password</h5>
+        <div class="mb-3">
+          <label>Email</label>
+          <input type="email" id="resetEmail" class="form-control" placeholder="Enter your registered email" />
+        </div>
+        <div class="text-end">
+          <button class="btn btn-primary" onclick="sendResetCode()">Send Code</button>
+        </div>
+        <div id="codeSection" class="mt-3 d-none">
+          <label>Enter Code</label>
+          <input type="text" id="resetCode" class="form-control mb-3" placeholder="Enter code received via email" />
+          <label>New Password</label>
+          <input type="password" id="newPass1" class="form-control mb-2" placeholder="New password" />
+          <input type="password" id="newPass2" class="form-control mb-3" placeholder="Confirm new password" />
+          <div class="text-end">
+            <button class="btn btn-success" onclick="verifyAndResetPassword()">Reset Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="init.js"></script>
+
+  <script>
+    // ✨ سطر تجريبي مؤقت عشان الموقع يشتغل
+    if (!localStorage.getItem('userType')) {
+      localStorage.setItem('userType', 'student');
+    }
+    </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function redirectToDashboard(event) {
+      event.preventDefault();
+      const inputEmail = document.getElementById("emailInput").value.trim();
+      const inputPassword = document.getElementById("passwordInput").value;
+      const savedProfile = JSON.parse(localStorage.getItem("studentProfile"));
+      if (!savedProfile) {
+        alert("No account found. Please contact admin.");
+        return;
+      }
+      if (inputEmail === savedProfile.email && inputPassword === savedProfile.password) {
+        window.location.href = "home.html";
+      } else {
+        alert("Incorrect email or password.");
+      }
+    }
+
+    function sendResetCode() {
+      const email = document.getElementById("resetEmail").value.trim();
+      const profile = JSON.parse(localStorage.getItem("studentProfile"));
+      if (!profile || profile.email !== email) return alert("Email not found.");
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      localStorage.setItem("resetCode", code);
+      alert("Code sent to your email (simulated): " + code);
+      document.getElementById("codeSection").classList.remove("d-none");
+    }
+
+    function verifyAndResetPassword() {
+      const code = document.getElementById("resetCode").value.trim();
+      const pass1 = document.getElementById("newPass1").value.trim();
+      const pass2 = document.getElementById("newPass2").value.trim();
+      const savedCode = localStorage.getItem("resetCode");
+
+      if (code !== savedCode) return alert("Invalid code");
+      if (pass1.length < 4 || pass1 !== pass2) return alert("Passwords must match and be at least 4 characters long");
+
+      const profile = JSON.parse(localStorage.getItem("studentProfile"));
+      profile.password = pass1;
+      localStorage.setItem("studentProfile", JSON.stringify(profile));
+      alert("Password reset successful");
+      document.getElementById("resetModal").classList.remove("show");
+      document.querySelector(".modal-backdrop").remove();
+    }
+  </script>
+</body>
+</html>

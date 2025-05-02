@@ -1,0 +1,98 @@
+/* الخلفية العامة */
+body.main-bg {
+    background-color: #f8f9fa; /* أوف وايت */
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+  }
+  
+  /* مساحة صفحة تسجيل الدخول */
+  .login-page {
+    background-color: #94d0f1; /* اللون الأزرق الخفيف */
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  /* تنسيق اختياري للفورم */
+  .login-form {
+    background-color: transparent;
+  }
+  /* خلفية الصفحة */
+  .page-bg {
+    background-image: url("background.png");  /* ← الاسم اللي انت اخترته */
+    background-repeat: repeat;                /* الصورة تتكرر */
+    background-size: 300px auto;              /* حجم مضبوط للتكرار */
+    background-position: top center;          /* تبدأ من أعلى الصفحة */
+    background-color: #fefefe;                /* خلفية أوف وايت ناعمة */
+    min-height: 100vh;
+  }
+  
+  /* صناديق Courses و Profile */
+  .home-box {
+    background-color: #94d0f1;
+    width: 250px;
+    height: 180px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* لما تعمل Hover على البوكس */
+  .home-box:hover {
+    transform: translateY(-5px);
+  }
+  
+  /* Responsive: على الشاشات الكبيرة نخلي البوكس أعرض (زي مستطيل) */
+  @media (min-width: 768px) {
+    .home-box {
+      width: 300px;
+      height: 160px;
+    }
+  }
+  
+  @media (min-width: 992px) {
+    .home-box {
+      width: 400px;
+      height: 160px;
+    }
+  }
+  /* إزالة الخط تحت الروابط وتثبيت اللون */
+a {
+  text-decoration: none;
+  color: inherit; /* ياخد نفس لون العنصر اللي حواليه */
+}
+/* إزالة الخط تحت الروابط وتثبيت اللون */
+a {
+    text-decoration: none;
+    color: inherit; /* ياخد نفس لون العنصر اللي حواليه */
+  }
+  .form-box-hidden {
+    width: 95%;
+    max-width: 900px;
+    background-color: #94d0ff;
+    display: block;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    padding: 24px;
+  }
+  .resit-box {
+    width: 95%;
+    max-width: 900px;
+    background-color: #94d0ff;
+    padding: 24px;
+    border-radius: 16px;
+  }
+  .students-list-box {
+    width: 95%;
+    max-width: 900px;
+    background-color: #94d0ff;
+    padding: 24px;
+    border-radius: 16px;
+  }
+  /* هذا الكلاس خاص بتحديد عرض شعار EduGate ليكون ثابت 50px */
+.logo-small {
+  width: 50px;
+}

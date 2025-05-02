@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduGate | Students List</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body class="main-bg">
+  <header class="d-flex justify-content-between align-items-center px-4 py-3 shadow bg-white">
+    <a href="instructor_home.html" class="d-flex align-items-center text-decoration-none text-dark">
+      <img src="logo.png" alt="EduGate Logo" style="width: 50px;" />
+      <span class="ms-2 fw-bold fs-5">EduGate</span>
+    </a>
+    <h4 class="m-0 text-center flex-grow-1 fw-bold">
+      <i class="fa-solid fa-house bg-info p-2 rounded-circle text-white me-2"></i>
+      <span>Students <span class="text-primary">List</span></span>
+    </h4>
+    <div class="d-flex gap-2">
+      <a href="instructor_profile.html" class="btn btn-primary rounded-pill">
+        <i class="fa-solid fa-user me-1"></i> My Profile
+      </a>
+      <button onclick="logout()" class="btn btn-outline-danger rounded-pill">
+        <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="page-bg d-flex justify-content-center align-items-center flex-column py-5">
+    <div class="students-list-box p-4 rounded-4 shadow">
+        <table class="table text-center">
+        <thead>
+          <tr>
+            <th>Num</th>
+            <th>Student Name</th>
+            <th>Student Number</th>
+            <th>Letter</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="studentsTable"></tbody>
+      </table>
+      <div class="text-center mt-4 d-flex justify-content-center gap-3">
+        <button class="btn btn-dark rounded-pill" onclick="openUploadPopup()">
+          <i class="fa-solid fa-upload me-2"></i>Upload Grades
+        </button>
+        <button class="btn btn-success rounded-pill" onclick="openAddStudentPopup()">
+          <i class="fa-solid fa-plus me-2"></i>Add Student
+        </button>
+      </div>
+    </div>
+  </main>
+  <div id="uploadModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Upload Excel File</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input id="excelFile" type="file" class="form-control" accept=".xlsx, .xls" />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" onclick="uploadExcel()">Upload</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="addStudentModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add New Student</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="newStudentName" class="form-control mb-3" placeholder="Student Name" />
+          <input type="text" id="newStudentNumber" class="form-control mb-3" placeholder="Student Number (Digits Only)" oninput="this.value=this.value.replace(/\\D/g,'')" />
+          <input type="text" id="newStudentGrade" class="form-control" placeholder="Letter Grade (AA, BB, ... , FF)" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="addStudent()">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="editStudentModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Student</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="editStudentName" class="form-control mb-3" placeholder="Student Name" />
+          <input type="text" id="editStudentNumber" class="form-control mb-3" placeholder="Student Number (Digits Only)" oninput="this.value=this.value.replace(/\\D/g,'')" />
+          <input type="text" id="editStudentGrade" class="form-control" placeholder="Letter Grade (AA, BB, ..., FF)" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="updateStudent()">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="init.js"></script>
+
+  <script>
+    // حماية الصفحة - تأكيد أن اليوزر Instructor فقط
+    const userType = localStorage.getItem("userType");
+    if (userType !== "instructor") {
+      window.location.href = "index.html"; 
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    let currentEditIndex = null;
+  
+    document.addEventListener("DOMContentLoaded", () => {
+      const saved = localStorage.getItem("studentsData");
+      if (saved) {
+        renderStudentsTable(JSON.parse(saved));
+      }
+    });
+  
+    function capitalizeName(name) {
+      return name
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" ");
+    }
+  
+    function renderStudentsTable(data) {
+      const table = document.getElementById("studentsTable");
+      table.innerHTML = "";
+      data.forEach((student, index) => {
+        const formattedName = capitalizeName(student.name);
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${formattedName}</div></td>
+          <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${student.number || ''}</div></td>
+          <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${student.grade}</div></td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm me-2" onclick="openEditPopup(${index})">Edit</button>
+            
+          </td>
+        `;
+        table.appendChild(row);
+      });
+    }
+  
+    function deleteStudent(index) {
+      const students = JSON.parse(localStorage.getItem("studentsData")) || [];
+      students.splice(index, 1);
+      localStorage.setItem("studentsData", JSON.stringify(students));
+      renderStudentsTable(students);
+    }
+  
+    function isValidGrade(grade) {
+      const validGrades = ["AA", "BA", "BB", "CB", "CC", "DC", "DD", "DZ", "FF"];
+      return validGrades.includes(grade);
+    }
+  
+    function isValidNumber(number) {
+      return /^\d{1,10}$/.test(number);
+    }
+  
+    function addStudent() {
+      const name = capitalizeName(document.getElementById("newStudentName").value.trim());
+      const grade = document.getElementById("newStudentGrade").value.trim().toUpperCase();
+      const number = document.getElementById("newStudentNumber").value.trim();
+  
+      if (!name || !isValidGrade(grade) || !isValidNumber(number)) {
+        alert("Please enter a valid name, a capital letter grade (e.g. AA), and a student number (digits only, max 10).");
+
+        return;
+      }
+  
+      const students = JSON.parse(localStorage.getItem("studentsData")) || [];
+      const student = { name, grade, number };
+      students.push(student);
+      localStorage.setItem("studentsData", JSON.stringify(students));
+      renderStudentsTable(students);
+  
+      // Save to backend
+      saveGradeToBackend({
+        name,
+        number,
+        courseCode: "UNKNOWN", // optionally replace this if you have course info
+        grade
+      });
+  
+      const modal = bootstrap.Modal.getInstance(document.getElementById("addStudentModal"));
+      modal.hide();
+      document.getElementById("newStudentName").value = "";
+      document.getElementById("newStudentGrade").value = "";
+      document.getElementById("newStudentNumber").value = "";
+    }
+  
+    function openEditPopup(index) {
+      const students = JSON.parse(localStorage.getItem("studentsData")) || [];
+      const student = students[index];
+      currentEditIndex = index;
+      document.getElementById("editStudentName").value = student.name;
+      document.getElementById("editStudentGrade").value = student.grade;
+      document.getElementById("editStudentNumber").value = student.number || "";
+      const modal = new bootstrap.Modal(document.getElementById("editStudentModal"));
+      modal.show();
+    }
+  
+    function updateStudent() {
+      const name = capitalizeName(document.getElementById("editStudentName").value.trim());
+      const grade = document.getElementById("editStudentGrade").value.trim().toUpperCase();
+      const number = document.getElementById("editStudentNumber").value.trim();
+  
+      if (!name || !isValidGrade(grade) || !isValidNumber(number)) {
+        alert("Please enter a valid name, a capital letter grade (e.g. AA), and a student number (digits only, max 10).");
+
+        return;
+      }
+  
+      const students = JSON.parse(localStorage.getItem("studentsData")) || [];
+      if (currentEditIndex !== null && students[currentEditIndex]) {
+        students[currentEditIndex] = { name, grade, number };
+        localStorage.setItem("studentsData", JSON.stringify(students));
+        renderStudentsTable(students);
+        bootstrap.Modal.getInstance(document.getElementById("editStudentModal")).hide();
+  
+        // Save updated student to backend
+        saveGradeToBackend({
+          name,
+          number,
+          courseCode: "UNKNOWN", // update if available
+          grade
+        });
+      }
+    }
+  
+    function uploadExcel() {
+      const fileInput = document.getElementById("excelFile");
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select an Excel file.");
+        return;
+      }
+  
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+  
+        const students = JSON.parse(localStorage.getItem("studentsData")) || [];
+  
+        json.slice(1).forEach((row) => {
+          const name = row[0]?.toString().trim();
+          const number = row[1]?.toString().trim();
+          const grade = row[2]?.toString().trim().toUpperCase();
+  
+          if (!name || !isValidNumber(number) || !isValidGrade(grade)) return;
+  
+          const student = { name: capitalizeName(name), number, grade };
+          students.push(student);
+          saveGradeToBackend({
+            name: student.name,
+            number: student.number,
+            courseCode: "UNKNOWN",
+            grade: student.grade
+          });
+        });
+  
+        localStorage.setItem("studentsData", JSON.stringify(students));
+        renderStudentsTable(students);
+        alert("Excel file uploaded successfully.");
+        const modal = bootstrap.Modal.getInstance(document.getElementById("uploadModal"));
+        modal.hide();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  
+    function openUploadPopup() {
+      const modal = new bootstrap.Modal(document.getElementById("uploadModal"));
+      modal.show();
+    }
+  
+    function openAddStudentPopup() {
+      const modal = new bootstrap.Modal(document.getElementById("addStudentModal"));
+      modal.show();
+    }
+  
+    function logout() {
+  localStorage.clear();
+  window.location.href = "index.html";
+}
+
+  
+    function saveGradeToBackend(student) {
+      fetch('/api/save-student-grade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: student.name,
+          number: student.number,
+          courseCode: student.courseCode,
+          grade: student.grade
+        })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to save grade");
+        console.log("Grade saved successfully.");
+      })
+      .catch(err => {
+        console.error("Error saving grade:", err);
+      });
+    }
+  </script>
+  </body>
+  </html>
+  

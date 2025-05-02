@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGate | Resit Exam List</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="main-bg">
+  <header class="d-flex justify-content-between align-items-center px-4 py-3 shadow bg-white">
+    <a href="instructor_home.html" class="d-flex align-items-center text-decoration-none text-dark">
+      <img src="logo.png" alt="EduGate Logo" style="width: 50px;">
+      <span class="ms-2 fw-bold fs-5">EduGate</span>
+    </a>
+    <h4 class="m-0 text-center flex-grow-1 fw-bold">
+      <i class="fa-solid fa-house bg-info p-2 rounded-circle text-white me-2"></i>
+      <span>Resit <span class="text-primary">Exam List</span></span>
+    </h4>
+    <div class="d-flex gap-2">
+      <a href="instructor_profile.html" class="btn btn-primary rounded-pill">
+        <i class="fa-solid fa-user me-1"></i> My Profile
+      </a>
+      <button onclick="logout()" class="btn btn-outline-danger rounded-pill">
+        <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="page-bg d-flex justify-content-center align-items-center flex-column py-5">
+    <div class="p-4 rounded-4 shadow" style="width: 95%; max-width: 1000px; background-color: #94d0ff;">
+      <div class="text-center mb-3">
+        <button class="btn btn-success rounded-pill px-4" onclick="confirmAll()">
+          ✅ Confirm All Students
+        </button>
+      </div>
+      <table class="table text-center">
+        <thead>
+          <tr>
+            <th>Num</th>
+            <th>Students</th>
+            <th>Course Code</th>
+            <th>Student Number</th>
+            <th>Letter</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="resitTable"></tbody>
+      </table>
+      
+    </div>
+  </main>
+
+  <div id="successToast" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 9999; margin-top: 20px; display: none;">
+    <div class="toast align-items-center text-bg-success border-0 show" role="alert">
+      <div class="d-flex">
+        <div class="toast-body fw-bold">
+          ✔️ All students confirmed successfully!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Student Info</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="editName" class="form-control mb-2" placeholder="Student Name">
+          <input type="text" id="editCourse" class="form-control mb-2" placeholder="Course Code">
+          <input type="text" id="editNumber" class="form-control mb-2" placeholder="Student Number">
+          <input type="text" id="editGrade" class="form-control mb-2" placeholder="Grade">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="saveEdit()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="init.js"></script>
+
+  <script>
+    // حماية الصفحة - تأكيد أن اليوزر Instructor فقط
+    const userType = localStorage.getItem("userType");
+    if (userType !== "instructor") {
+      window.location.href = "index.html"; 
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let resitStudents = JSON.parse(localStorage.getItem("resitApplied")) || [];
+  let currentIndex = null;
+
+  const uniqueStudents = [];
+  const seen = new Set();
+  resitStudents.forEach(student => {
+    const key = student.name + student.course + student.grade;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueStudents.push(student);
+    }
+  });
+  resitStudents = uniqueStudents;
+  localStorage.setItem("resitApplied", JSON.stringify(resitStudents));
+
+  function formatName(name) {
+    return name
+      .split(" ")
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(" ");
+  }
+
+  function renderTable() {
+  const table = document.getElementById("resitTable");
+  table.innerHTML = "";
+  resitStudents.forEach((student, index) => {
+    const formattedName = formatName(student.name);
+    const confirmed = student.confirmed ? true : false;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${(index + 1).toString().padStart(2, '0')}</td>
+      <td>${formattedName || '-'}</td>
+      <td>${student.course || '-'}</td>
+      <td>${student.number || '-'}</td>
+      <td>${student.grade || '-'}</td>
+      <td class="d-flex justify-content-center gap-2">
+        <button class="btn ${confirmed ? 'btn-danger' : 'btn-success'} rounded-pill btn-sm" onclick="handleConfirm(${index})">
+          ${confirmed ? 'Unconfirm' : 'Confirm'}
+        </button>
+        <button class="btn btn-outline-primary rounded-pill btn-sm" onclick="editStudent(${index})">
+          Edit
+        </button>
+      </td>
+    `;
+    table.appendChild(row);
+  });
+}
+
+  function handleConfirm(index) {
+    if (resitStudents[index].confirmed) {
+      if (confirm("Are you sure you want to unconfirm this student?")) {
+        resitStudents[index].confirmed = false;
+      }
+    } else {
+      resitStudents[index].confirmed = true;
+    }
+    localStorage.setItem("resitApplied", JSON.stringify(resitStudents));
+    renderTable();
+  }
+
+  function confirmAll() {
+    resitStudents.forEach(student => student.confirmed = true);
+    localStorage.setItem("resitApplied", JSON.stringify(resitStudents));
+    renderTable();
+  }
+
+  function editStudent(index) {
+    currentIndex = index;
+    const student = resitStudents[index];
+    document.getElementById("editName").value = student.name;
+    document.getElementById("editCourse").value = student.course;
+    document.getElementById("editNumber").value = student.number;
+    document.getElementById("editGrade").value = student.grade;
+    new bootstrap.Modal(document.getElementById("editModal")).show();
+  }
+
+  function saveEdit() {
+    if (currentIndex === null) return;
+    const name = document.getElementById("editName").value.trim();
+    const course = document.getElementById("editCourse").value.trim();
+    const number = document.getElementById("editNumber").value.trim();
+    const grade = document.getElementById("editGrade").value.trim().toUpperCase();
+
+    if (!name || !course || !grade) {
+      alert("Please fill all fields correctly.");
+      return;
+    }
+
+    resitStudents[currentIndex] = {
+      ...resitStudents[currentIndex],
+      name,
+      course,
+      number,
+      grade
+    };
+
+    localStorage.setItem("resitApplied", JSON.stringify(resitStudents));
+    renderTable();
+    bootstrap.Modal.getInstance(document.getElementById("editModal")).hide();
+  }
+
+  function deleteStudent(index) {
+    resitStudents.splice(index, 1);
+    localStorage.setItem("resitApplied", JSON.stringify(resitStudents));
+    renderTable();
+  }
+  
+  function showToast(message) {
+  const toastDiv = document.getElementById('successToast');
+  toastDiv.querySelector('.toast-body').textContent = message;
+  toastDiv.style.display = 'block';
+  
+  setTimeout(() => {
+    toastDiv.style.display = 'none';
+  }, 2500);
+}
+
+  function logout() {
+  localStorage.clear();
+  window.location.href = "index.html";
+}
+
+
+  document.addEventListener("DOMContentLoaded", renderTable);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGate | Courses</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .bg-maroon {
+      background-color: #0d6efd;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: inline-block;
+      min-width: 90px;
+    }
+    .text-white-semi {
+      color: rgba(255, 255, 255, 0.95);
+      font-weight: bold;
+    }
+    .retake-btn {
+      width: 100%;
+      font-weight: bold;
+    }
+    .btn-apply-frame {
+      border: 2px solid #adb5bd;
+    }
+    .btn-secondary {
+      background-color: #ced4da !important;
+      color: #212529 !important;
+    }
+    .bg-home-blue {
+      background-color: #94d0ff !important;
+    }
+  </style>
+</head>
+<body class="main-bg">
+  <header class="d-flex justify-content-between align-items-center px-4 py-3 shadow bg-white">
+    <a href="home.html" class="d-flex align-items-center text-decoration-none text-dark">
+      <img src="logo.png" alt="EduGate Logo" class="logo-small" />
+      <span class="ms-2 fw-bold fs-5">EduGate</span>
+    </a>
+    <h4 class="m-0 text-center flex-grow-1 fw-bold">Course list</h4>
+    <div class="d-flex gap-2">
+      <a href="profile.html" class="btn btn-primary rounded-pill">
+        <i class="fa-solid fa-user me-1"></i> My Profile
+      </a>
+      <button onclick="logout()" class="btn btn-outline-danger rounded-pill">
+        <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="page-bg d-flex justify-content-center align-items-center flex-column py-5">
+    <div class="bg-home-blue p-4 rounded-4 shadow" style="width: 95%; max-width: 900px;">
+      <button id="reloadBtn" class="btn btn-warning mb-3 d-none">🔄 Reload Grades</button>
+      <table class="table text-center align-middle" id="coursesTable">
+        <thead>
+          <tr>
+            <th>Num</th>
+            <th>Course Code</th>
+            <th>Letter Grade</th>
+            <th>Apply for a retake exam</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="studentGradeStatus" class="mt-4 alert alert-info text-center d-none"></div>
+    </div>
+    <div class="bg-home-blue p-4 rounded-4 shadow mt-4" style="width: 95%; max-width: 900px;">
+      <h5 class="text-center mb-3">Available Courses for Registration</h5>
+      <div id="availableCoursesContainer" class="d-flex flex-wrap justify-content-center gap-3">
+        <!-- الكورسات المتاحة ستترسم هنا ديناميكيا -->
+      </div>
+    </div>
+  </main>
+
+  <script src="init.js"></script>
+
+  <script>
+    // حماية الصفحة - تأكيد أن اليوزر Student فقط
+    const userType = localStorage.getItem("userType");
+    if (userType !== "student") {
+      window.location.href = "index.html"; 
+    }
+  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <script>
+    // بيانات ثابتة بديلة لو فشل الجلب من السيرفر
+    const staticCourses = [
+      { num: "01", code: "ST102" },
+      { num: "02", code: "DB202" },
+      { num: "03", code: "EN101" },
+      { num: "04", code: "MATH101" },
+      { num: "05", code: "MATH012" },
+      { num: "06", code: "HS205" },
+      { num: "07", code: "PSY210" }
+    ];
+  
+    const fallbackGrades = {
+      ST102: "BB",
+      DB202: "CC",
+      EN101: "AA",
+      MATH101: "DC",
+      MATH012: "DZ",
+      HS205: "FF",
+      PSY210: "CB"
+    };
+  
+    // عرض الكورسات الحالية ودرجاتها
+    function renderCourses(gradesSource, studentName, message = null) {
+      const tableBody = document.querySelector("#coursesTable tbody");
+      const statusBox = document.getElementById("studentGradeStatus");
+      const reloadBtn = document.getElementById("reloadBtn");
+  
+      if (!tableBody || !statusBox || !reloadBtn) {
+        console.error("Some required elements are missing in the page.");
+        return;
+      }
+  
+      tableBody.innerHTML = "";
+      statusBox.textContent = message || `Welcome ${studentName}, here are your courses and grades:`;
+      statusBox.classList.remove("d-none");
+      reloadBtn.classList.remove("d-none");
+  
+      staticCourses.forEach((course) => {
+        const grade = gradesSource[course.code] || "-";
+  
+        let actionBtn = "";
+        if (["AA", "BA", "BB", "CB", "CC"].includes(grade)) {
+          actionBtn = `<button class='btn btn-secondary retake-btn' onclick="alert('Grade too high to retake.')">Can't Apply</button>`;
+        } else if (["DC", "DD", "FF"].includes(grade)) {
+          actionBtn = `<a href="apply.html?course=${course.code}&grade=${grade}" class='btn btn-light btn-apply-frame retake-btn'>Apply</a>`;
+        } else if (grade === "DZ") {
+          actionBtn = `<button class='btn btn-secondary retake-btn' onclick="alert('Failed due to attendance.')">Attendance Fail</button>`;
+        } else {
+          actionBtn = `<button class='btn btn-light retake-btn' disabled>N/A</button>`;
+        }
+  
+        tableBody.innerHTML += `
+          <tr>
+            <td>${course.num}</td>
+            <td><div class="bg-maroon text-white-semi">${course.code}</div></td>
+            <td><div class="bg-maroon text-white-semi">${grade}</div></td>
+            <td>${actionBtn}</td>
+          </tr>
+        `;
+      });
+    }
+  
+    // جلب درجات الطالب من السيرفر
+    function fetchGrades() {
+      let student = {};
+      try {
+        student = JSON.parse(localStorage.getItem("studentProfile")) || {};
+      } catch (error) {
+        console.error("Error parsing studentProfile from localStorage:", error);
+        student = {};
+      }
+  
+      if (!student.name || !student.number) {
+        console.error("Student profile is missing required fields.");
+        return;
+      }
+  
+      fetch(`/api/get-student-courses?name=${encodeURIComponent(student.name)}&number=${encodeURIComponent(student.number)}`)
+        .then(res => res.json())
+        .then(gradesArray => {
+          if (Array.isArray(gradesArray) && gradesArray.length > 0) {
+            const mappedGrades = {};
+            gradesArray.forEach(item => {
+              mappedGrades[item.courseCode] = item.grade;
+            });
+            renderCourses(mappedGrades, student.name);
+          } else {
+            renderCourses(fallbackGrades, student.name, "No data found from server. Showing example grades.");
+          }
+        })
+        .catch((error) => {
+          console.error("Fetch error:", error);
+          renderCourses(fallbackGrades, student.name, "Error fetching data from server. Showing fallback grades.");
+          const statusBox = document.getElementById("studentGradeStatus");
+          if (statusBox) {
+            statusBox.classList.replace("alert-info", "alert-warning");
+          }
+        });
+    }
+  
+    // جلب الكورسات المتاحة للتسجيل الجديد
+    function fetchAvailableCourses() {
+      fetch('/api/student/available-courses', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => response.json())
+      .then(coursesArray => {
+        const availableCoursesContainer = document.getElementById("availableCoursesContainer");
+        if (!availableCoursesContainer) {
+          console.error("availableCoursesContainer element not found!");
+          return;
+        }
+        availableCoursesContainer.innerHTML = "";
+        coursesArray.forEach(course => {
+          const courseElement = document.createElement("div");
+          courseElement.className = "card m-2 p-3";
+          courseElement.innerHTML = `
+            <h5>${course.name} (${course.code})</h5>
+            <p>${course.description || "No description available."}</p>
+            <button onclick="applyForCourse('${course.code}')" class="btn btn-success">Apply</button>
+          `;
+          availableCoursesContainer.appendChild(courseElement);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching available courses:', error);
+      });
+    }
+  
+    // تقديم على كورس جديد
+    function applyForCourse(courseCode) {
+      fetch('/api/student/applyCourse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ courseCode: courseCode })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Applied successfully!');
+          fetchAvailableCourses(); // تحديث القائمة بعد التقديم
+        } else {
+          alert('Failed to apply: ' + (data.message || 'Unknown error'));
+        }
+      })
+      .catch(error => {
+        console.error('Error applying for course:', error);
+      });
+    }
+  
+    // عند تحميل الصفحة
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchGrades();            // تحميل درجات الطالب
+      fetchAvailableCourses();  // تحميل الكورسات المتاحة
+      const reloadBtn = document.getElementById("reloadBtn");
+      if (reloadBtn) {
+        reloadBtn.addEventListener("click", fetchGrades);
+      }
+    });
+  
+    // تسجيل الخروج
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+  </script>
+  
+</body>
+</html>

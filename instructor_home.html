@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduGate | Instructor Home</title>
+  <script src="init.js"></script>
+  <!-- روابط التنسيق -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+</head>
+<body class="main-bg">
+
+  <!-- الهيدر -->
+  <header class="d-flex justify-content-between align-items-center px-4 py-3 shadow bg-white">
+    <a href="instructor_home.html" class="d-flex align-items-center text-decoration-none text-dark">
+      <img src="logo.png" alt="EduGate Logo" class="logo-small" style="cursor: pointer;" />
+      <span class="ms-2 fw-bold fs-5">EduGate</span>
+    </a>
+  
+    <h4 class="m-0 text-center flex-grow-1 fw-bold">
+      Welcome <span class="text-primary">[Instructor Name]</span>
+    </h4>
+  
+    <div class="d-flex gap-2">
+      <a href="instructor_profile.html" class="btn btn-primary rounded-pill">
+        <i class="fa-solid fa-user me-1"></i> My Profile
+      </a>
+      <button onclick="logout()" class="btn btn-outline-danger rounded-pill">
+        <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Logout
+      </button>
+    </div>
+  </header>
+  <!-- جسم الصفحة -->
+  <main class="page-bg d-flex justify-content-center align-items-center flex-column py-5">
+    <div class="d-flex flex-wrap gap-4 justify-content-center">
+      <!-- Students List -->
+      <a href="instructor_students_list.html" class="home-box text-dark text-decoration-none">
+        <div class="d-flex justify-content-center align-items-center h-100">
+          <span class="fw-bold fs-4">Students <span class="text-primary">List</span></span>
+        </div>
+      </a>
+
+      <!-- Resit Exam List -->
+      <a href="instructor_resit_exam_list.html" class="home-box text-dark text-decoration-none">
+        <div class="d-flex justify-content-center align-items-center h-100 text-center">
+          <span class="fw-bold fs-4">Resit <span class="text-primary">Exam</span> List</span>
+        </div>
+      </a>
+
+      <!-- Resit Exam Details -->
+      <a href="instructor_resit_exam_details.html" class="home-box text-dark text-decoration-none">
+        <div class="d-flex justify-content-center align-items-center h-100 text-center">
+          <span class="fw-bold fs-4">Resit <span class="text-primary">Exam</span> Details</span>
+        </div>
+      </a>
+    </div>
+  </main>
+
+      <script src="init.js"></script> 
+  <!-- سكريبت -->
+  <script>
+    // حماية الصفحة - تأكيد أن اليوزر Instructor فقط
+    const userType = localStorage.getItem("userType");
+    if (userType !== "instructor") {
+      window.location.href = "index.html"; 
+    }
+  
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+  const instructorProfile = JSON.parse(localStorage.getItem('instructorProfile')) || {};
+  const nameSpan = document.querySelector("header h4 span.text-primary");
+  if (nameSpan) {
+    nameSpan.textContent = instructorProfile.name || "Instructor";
+  }
+});
+  
+  </script>
+</body>
+</html>
