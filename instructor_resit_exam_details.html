@@ -154,20 +154,21 @@
     }
 
     function renderExamSummaries() {
-      const container = document.getElementById("allExamDetails");
-      container.innerHTML = "";
-      courses.forEach(code => {
-        const desc = localStorage.getItem(`${code}_desc`) || "-";
-        const room = localStorage.getItem(`${code}_room`) || "A101";
-        const time = localStorage.getItem(`${code}_time`) || "2:00 pm";
+  const container = document.getElementById("allExamDetails");
+  container.innerHTML = "";
+  courses.forEach(code => {
+    const desc = localStorage.getItem(`${code}_desc`) || "-";
+    const room = localStorage.getItem(`${code}_room`) || "A101";
+    const time = localStorage.getItem(`${code}_time`) || "2:00 pm";
 
-        const box = document.createElement("div");
-        box.className = "rounded p-3 mb-3 shadow-sm";
-        box.style.backgroundColor = "#dce9f9";
-        box.innerHTML = `<b>${code}</b> — Room: ${room} — Time: ${time}<br/><p class='mt-2'>${desc}</p>`;
-        container.appendChild(box);
-      });
-    }
+    const box = document.createElement("div");
+    box.className = "rounded p-3 mb-3 shadow-sm";
+    box.style.backgroundColor = "#0b5ed7"; // مشتق من لون الزر الأزرق
+    box.style.color = "white"; // علشان النص يبان كويس
+    box.innerHTML = `<b>${code}</b> — Room: ${room} — Time: ${time}<br/><p class='mt-2'>${desc}</p>`;
+    container.appendChild(box);
+  });
+}
 
     function showToast(message) {
       const toastDiv = document.getElementById('successToast');
