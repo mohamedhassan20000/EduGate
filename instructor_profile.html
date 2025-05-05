@@ -131,11 +131,7 @@
 
 
 <script>
-  // حماية الصفحة - تأكيد أن اليوزر Instructor فقط
-  const userType = localStorage.getItem("userType");
-  if (userType !== "instructor") {
-    window.location.href = "index.html"; 
-  }
+  
 
   // توجيه اللوجو حسب نوع المستخدم
   const logoLink = document.getElementById("logoLink");

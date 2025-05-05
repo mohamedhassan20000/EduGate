@@ -61,11 +61,7 @@
 
   <!-- سكريبت -->
   <script>
-    // حماية الصفحة - تأكيد أن اليوزر Instructor فقط
-    const userType = localStorage.getItem("userType");
-    if (userType !== "instructor") {
-      window.location.href = "index.html"; 
-    }
+  
   
     function logout() {
       localStorage.clear();

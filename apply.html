@@ -66,11 +66,7 @@
 
 
   <script>
-    // 🔥 حماية الصفحة - تأكيد أن اليوزر Student فقط
-    const userType = localStorage.getItem("userType");
-    if (userType !== "student") {
-      window.location.href = "index.html"; // خليه يرجعه للـ Login مش للـ Home
-    }
+   
    
     const urlParams = new URLSearchParams(window.location.search);
     const courseCode = urlParams.get("course");
