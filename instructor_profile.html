@@ -130,6 +130,9 @@
     </div>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
 <script>
   
 
@@ -148,8 +151,6 @@
   }
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
   function logout() {
     window.location.href = "index.html";
@@ -160,7 +161,7 @@
     const newPassword = document.getElementById("editNewPassword").value;
     const confirmPassword = document.getElementById("editConfirmPassword").value;
 
-    const profile = JSON.parse(localStorage.getItem("studentProfile")) || {};
+    const profile = JSON.parse(localStorage.getItem("instructorProfile")) || {};
 
     if (currentPassword !== profile.password) {
       alert("Current password is incorrect.");
@@ -173,8 +174,21 @@
     }
 
     profile.password = newPassword || currentPassword;
-    localStorage.setItem("studentProfile", JSON.stringify(profile));
+    localStorage.setItem("instructorProfile", JSON.stringify(profile));
     updateProfileView();
+
+    // ✅ سجل التعديلات
+    let changes = JSON.parse(localStorage.getItem("instructorProfileChangesLog")) || [];
+    changes.push({
+      id: profile.id || "unknown",
+      name: profile.name || "",
+      email: profile.email || "",
+      instructorId: profile.studentNumber || "",
+      password: profile.password,
+      date: new Date().toISOString()
+    });
+    localStorage.setItem("instructorProfileChangesLog", JSON.stringify(changes));
+    console.log("Updated instructorProfileChangesLog.json:", JSON.stringify(changes, null, 2));
 
     alert("Profile updated successfully.");
     const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
@@ -182,11 +196,12 @@
   }
 
   function updateProfileView() {
-    const profile = JSON.parse(localStorage.getItem("studentProfile")) || {};
+    const profile = JSON.parse(localStorage.getItem("instructorProfile")) || {};
 
     document.getElementById("displayName").value = profile.name || "";
     document.getElementById("displayEmail").value = profile.email || "";
-    document.getElementById("displayStudentNumber").value = profile.studentNumber || "";
+    document.getElementById("displayStudentNumber").value = profile.id || "";
+
 
     let stars = "";
     if (profile.password) {
@@ -198,7 +213,7 @@
 
     document.getElementById("editName").value = profile.name || "";
     document.getElementById("editEmail").value = profile.email || "";
-    document.getElementById("editStudentNumber").value = profile.studentNumber || "";
+    document.getElementById("editStudentNumber").value = profile.id || "";
     document.getElementById("editPassword").value = "";
     document.getElementById("editNewPassword").value = "";
     document.getElementById("editConfirmPassword").value = "";

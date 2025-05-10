@@ -83,7 +83,6 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
   <script>
-    // بيانات ثابتة بديلة لو فشل الجلب من السيرفر
     const staticCourses = [
       { num: "01", code: "ST102" },
       { num: "02", code: "DB202" },
@@ -95,165 +94,163 @@
     ];
   
     const fallbackGrades = {
-      ST102: "BB",
-      DB202: "CC",
-      EN101: "AA",
-      MATH101: "DC",
+      ST102: "AA",
+      DB202: "BB",
+      EN101: "FF",
+      MATH101: "DD",
       MATH012: "DZ",
-      HS205: "FF",
-      PSY210: "CB"
+      HS205: "CB",
+      PSY210: "DC"
     };
   
-    // عرض الكورسات الحالية ودرجاتها
     function renderCourses(gradesSource, studentName, message = null) {
-      const tableBody = document.querySelector("#coursesTable tbody");
-      const statusBox = document.getElementById("studentGradeStatus");
-      const reloadBtn = document.getElementById("reloadBtn");
-  
-      if (!tableBody || !statusBox || !reloadBtn) {
-        console.error("Some required elements are missing in the page.");
-        return;
+  const tableBody = document.querySelector("#coursesTable tbody");
+  const statusBox = document.getElementById("studentGradeStatus");
+  const reloadBtn = document.getElementById("reloadBtn");
+
+  if (!tableBody || !statusBox || !reloadBtn) {
+    console.error("Missing page elements.");
+    return;
+  }
+
+  tableBody.innerHTML = "";
+  statusBox.textContent = message || `Welcome ${studentName}, here are your courses and grades:`;
+  statusBox.classList.remove("d-none");
+  reloadBtn.classList.remove("d-none");
+
+  const appliedCourses = JSON.parse(localStorage.getItem("appliedCourses") || "[]");
+  const justApplied = localStorage.getItem("justApplied");
+  if (justApplied) {
+    localStorage.removeItem("justApplied");
+  }
+
+  staticCourses.forEach((course) => {
+    const grade = gradesSource[course.code] || "-";
+    let actionBtn = "";
+
+    if (["AA", "BA", "BB", "CB", "CC"].includes(grade)) {
+      actionBtn = `<button class='btn btn-secondary retake-btn' onclick="alert('Grade too high to retake.')">Can't Apply</button>`;
+    } else if (["DC", "DD", "FF"].includes(grade)) {
+      const isApplied = appliedCourses.includes(course.code) || course.code === justApplied;
+      if (isApplied) {
+        actionBtn = `<button class='btn btn-primary retake-btn' onclick="toggleApply('${course.code}', '${grade}', this)">Applied</button>`;
+      } else {
+        actionBtn = `<button class='btn btn-light btn-apply-frame retake-btn' onclick="toggleApply('${course.code}', '${grade}', this)">Apply</button>`;
       }
-  
-      tableBody.innerHTML = "";
-      statusBox.textContent = message || `Welcome ${studentName}, here are your courses and grades:`;
-      statusBox.classList.remove("d-none");
-      reloadBtn.classList.remove("d-none");
-  
-      staticCourses.forEach((course) => {
-        const grade = gradesSource[course.code] || "-";
-  
-        let actionBtn = "";
-        if (["AA", "BA", "BB", "CB", "CC"].includes(grade)) {
-          actionBtn = `<button class='btn btn-secondary retake-btn' onclick="alert('Grade too high to retake.')">Can't Apply</button>`;
-        } else if (["DC", "DD", "FF"].includes(grade)) {
-          actionBtn = `<a href="apply.html?course=${course.code}&grade=${grade}" class='btn btn-light btn-apply-frame retake-btn'>Apply</a>`;
-        } else if (grade === "DZ") {
-          actionBtn = `<button class='btn btn-secondary retake-btn' onclick="alert('Failed due to attendance.')">Attendance Fail</button>`;
-        } else {
-          actionBtn = `<button class='btn btn-light retake-btn' disabled>N/A</button>`;
-        }
-  
-        tableBody.innerHTML += `
-          <tr>
-            <td>${course.num}</td>
-            <td><div class="bg-maroon text-white-semi">${course.code}</div></td>
-            <td><div class="bg-maroon text-white-semi">${grade}</div></td>
-            <td>${actionBtn}</td>
-          </tr>
-        `;
-      });
+    } else if (grade === "DZ") {
+      actionBtn = `<button class='btn btn-secondary retake-btn' onclick="alert('Failed due to attendance.')">Attendance Fail</button>`;
+    } else {
+      actionBtn = `<button class='btn btn-light retake-btn' disabled>N/A</button>`;
     }
+
+    tableBody.innerHTML += `
+      <tr>
+        <td>${course.num}</td>
+        <td><div class="bg-maroon text-white-semi">${course.code}</div></td>
+        <td><div class="bg-maroon text-white-semi">${grade}</div></td>
+        <td>${actionBtn}</td>
+      </tr>
+    `;
+  });
+}
   
-    // جلب درجات الطالب من السيرفر
-    function fetchGrades() {
-      let student = {};
+    function toggleApply(courseCode, grade, btn) {
+  let appliedCourses = JSON.parse(localStorage.getItem("appliedCourses") || "[]");
+  const isApplied = appliedCourses.includes(courseCode);
+
+  if (isApplied) {
+    // تأكيد قبل الإلغاء
+    const confirmCancel = confirm("Are you sure you want to cancel your application?");
+    if (!confirmCancel) return;
+
+    appliedCourses = appliedCourses.filter(c => c !== courseCode);
+    localStorage.setItem("appliedCourses", JSON.stringify(appliedCourses));
+    btn.textContent = "Apply";
+    btn.classList.remove("btn-primary");
+    btn.classList.add("btn-light", "btn-apply-frame");
+    btn.setAttribute("onclick", `toggleApply('${courseCode}', '${grade}', this)`);
+  } else {
+    // حفظ علامة التقديم الحالي
+    localStorage.setItem("justApplied", courseCode);
+    // تحويل المستخدم لصفحة apply.html مع الكورس والدرجة
+    window.location.href = `apply.html?course=${courseCode}&grade=${grade}`;
+  }
+}
+  
+    async function fetchGrades() {
+      const studentId = localStorage.getItem("userId");
+      if (!studentId) return alert("Student ID not found!");
+  
       try {
-        student = JSON.parse(localStorage.getItem("studentProfile")) || {};
+        const res = await fetch("data/students.json");
+        const students = await res.json();
+        const student = students.find(std => std.id === studentId);
+        if (!student) return alert("Student not found!");
+  
+        const mappedGrades = {};
+        student.courses.forEach(item => {
+          mappedGrades[item.courseCode] = item.grade;
+        });
+  
+        renderCourses(mappedGrades, student.name);
       } catch (error) {
-        console.error("Error parsing studentProfile from localStorage:", error);
-        student = {};
+        console.error("Error loading grades:", error);
+        renderCourses(fallbackGrades, "Student", "Showing fallback grades due to error.");
+        const statusBox = document.getElementById("studentGradeStatus");
+        if (statusBox) {
+          statusBox.classList.replace("alert-info", "alert-warning");
+        }
       }
-  
-      if (!student.name || !student.number) {
-        console.error("Student profile is missing required fields.");
-        return;
-      }
-  
-      fetch(`/api/get-student-courses?name=${encodeURIComponent(student.name)}&number=${encodeURIComponent(student.number)}`)
-        .then(res => res.json())
-        .then(gradesArray => {
-          if (Array.isArray(gradesArray) && gradesArray.length > 0) {
-            const mappedGrades = {};
-            gradesArray.forEach(item => {
-              mappedGrades[item.courseCode] = item.grade;
-            });
-            renderCourses(mappedGrades, student.name);
-          } else {
-            renderCourses(fallbackGrades, student.name, "No data found from server. Showing example grades.");
-          }
-        })
-        .catch((error) => {
-          console.error("Fetch error:", error);
-          renderCourses(fallbackGrades, student.name, "Error fetching data from server. Showing fallback grades.");
-          const statusBox = document.getElementById("studentGradeStatus");
-          if (statusBox) {
-            statusBox.classList.replace("alert-info", "alert-warning");
-          }
-        });
     }
   
-    // جلب الكورسات المتاحة للتسجيل الجديد
     function fetchAvailableCourses() {
-      fetch('/api/student/available-courses', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      .then(response => response.json())
-      .then(coursesArray => {
-        const availableCoursesContainer = document.getElementById("availableCoursesContainer");
-        if (!availableCoursesContainer) {
-          console.error("availableCoursesContainer element not found!");
-          return;
-        }
-        availableCoursesContainer.innerHTML = "";
-        coursesArray.forEach(course => {
-          const courseElement = document.createElement("div");
-          courseElement.className = "card m-2 p-3";
-          courseElement.innerHTML = `
-            <h5>${course.name} (${course.code})</h5>
-            <p>${course.description || "No description available."}</p>
-            <button onclick="applyForCourse('${course.code}')" class="btn btn-success">Apply</button>
-          `;
-          availableCoursesContainer.appendChild(courseElement);
+      fetch('data/available_courses.json')
+        .then(response => response.json())
+        .then(coursesArray => {
+          const availableCoursesContainer = document.getElementById("availableCoursesContainer");
+          if (!availableCoursesContainer) {
+            console.error("availableCoursesContainer element not found!");
+            return;
+          }
+          availableCoursesContainer.innerHTML = "";
+          coursesArray.forEach(course => {
+            const courseElement = document.createElement("div");
+            courseElement.className = "card m-2 p-3";
+            courseElement.innerHTML = `
+              <h5>${course.name} (${course.code})</h5>
+              <p>${course.description || "No description available."}</p>
+              <button onclick="applyForCourse('${course.code}')" class="btn btn-success">Apply</button>
+            `;
+            availableCoursesContainer.appendChild(courseElement);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching available courses:', error);
         });
-      })
-      .catch(error => {
-        console.error('Error fetching available courses:', error);
-      });
     }
   
-    // تقديم على كورس جديد
     function applyForCourse(courseCode) {
-      fetch('/api/student/applyCourse', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ courseCode: courseCode })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('Applied successfully!');
-          fetchAvailableCourses(); // تحديث القائمة بعد التقديم
-        } else {
-          alert('Failed to apply: ' + (data.message || 'Unknown error'));
-        }
-      })
-      .catch(error => {
-        console.error('Error applying for course:', error);
-      });
+      alert("You applied for course: " + courseCode);
+      const appliedCourses = JSON.parse(localStorage.getItem("appliedCourses") || "[]");
+      if (!appliedCourses.includes(courseCode)) {
+        appliedCourses.push(courseCode);
+        localStorage.setItem("appliedCourses", JSON.stringify(appliedCourses));
+      }
     }
   
-    // عند تحميل الصفحة
     document.addEventListener("DOMContentLoaded", () => {
-      fetchGrades();            // تحميل درجات الطالب
-      fetchAvailableCourses();  // تحميل الكورسات المتاحة
+      fetchGrades();
+      fetchAvailableCourses();
       const reloadBtn = document.getElementById("reloadBtn");
       if (reloadBtn) {
         reloadBtn.addEventListener("click", fetchGrades);
       }
     });
   
-    // تسجيل الخروج
     function logout() {
       localStorage.clear();
       window.location.href = "index.html";
     }
   </script>
-  
 </body>
 </html>

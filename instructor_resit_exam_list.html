@@ -92,6 +92,7 @@
   let resitStudents = JSON.parse(localStorage.getItem("resitApplied")) || [];
   let currentIndex = null;
 
+  // إزالة المكرر
   const uniqueStudents = [];
   const seen = new Set();
   resitStudents.forEach(student => {
@@ -112,40 +113,46 @@
   }
 
   function renderTable() {
-  const table = document.getElementById("resitTable");
-  table.innerHTML = "";
-  resitStudents.forEach((student, index) => {
-    const formattedName = formatName(student.name);
-    const confirmed = student.confirmed ? true : false;
+    const table = document.getElementById("resitTable");
+    table.innerHTML = "";
+    resitStudents.forEach((student, index) => {
+      const formattedName = formatName(student.name);
+      const confirmed = student.confirmed ? true : false;
 
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${(index + 1).toString().padStart(2, '0')}</td>
-      <td>${formattedName || '-'}</td>
-      <td>${student.course || '-'}</td>
-      <td>${student.number || '-'}</td>
-      <td>${student.grade || '-'}</td>
-      <td class="d-flex justify-content-center gap-2">
-        <button class="btn ${confirmed ? 'btn-danger' : 'btn-success'} rounded-pill btn-sm" onclick="handleConfirm(${index})">
-          ${confirmed ? 'Unconfirm' : 'Confirm'}
-        </button>
-        <button class="btn btn-outline-primary rounded-pill btn-sm" onclick="editStudent(${index})">
-          Edit
-        </button>
-      </td>
-    `;
-    table.appendChild(row);
-  });
-}
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${(index + 1).toString().padStart(2, '0')}</td>
+        <td>${formattedName || '-'}</td>
+        <td>${student.course || '-'}</td>
+        <td>${student.number || '-'}</td>
+        <td>${student.grade || '-'}</td>
+        <td class="d-flex justify-content-center gap-2">
+          <button class="btn ${confirmed ? 'btn-danger' : 'btn-success'} rounded-pill btn-sm" onclick="handleConfirm(${index})">
+            ${confirmed ? 'Unconfirm' : 'Confirm'}
+          </button>
+          <button class="btn btn-outline-primary rounded-pill btn-sm" onclick="editStudent(${index})">
+            Edit
+          </button>
+        </td>
+      `;
+      table.appendChild(row);
+    });
+  }
 
+  // ✅ تم التعديل هنا
   function handleConfirm(index) {
-    if (resitStudents[index].confirmed) {
+    const isConfirmed = resitStudents[index].confirmed;
+
+    if (isConfirmed) {
       if (confirm("Are you sure you want to unconfirm this student?")) {
         resitStudents[index].confirmed = false;
       }
     } else {
-      resitStudents[index].confirmed = true;
+      if (confirm("Are you sure you want to confirm this student?")) {
+        resitStudents[index].confirmed = true;
+      }
     }
+
     localStorage.setItem("resitApplied", JSON.stringify(resitStudents));
     renderTable();
   }
@@ -196,22 +203,20 @@
     localStorage.setItem("resitApplied", JSON.stringify(resitStudents));
     renderTable();
   }
-  
+
   function showToast(message) {
-  const toastDiv = document.getElementById('successToast');
-  toastDiv.querySelector('.toast-body').textContent = message;
-  toastDiv.style.display = 'block';
-  
-  setTimeout(() => {
-    toastDiv.style.display = 'none';
-  }, 2500);
-}
+    const toastDiv = document.getElementById('successToast');
+    toastDiv.querySelector('.toast-body').textContent = message;
+    toastDiv.style.display = 'block';
+    setTimeout(() => {
+      toastDiv.style.display = 'none';
+    }, 2500);
+  }
 
   function logout() {
-  localStorage.clear();
-  window.location.href = "index.html";
-}
-
+    localStorage.clear();
+    window.location.href = "index.html";
+  }
 
   document.addEventListener("DOMContentLoaded", renderTable);
 </script>

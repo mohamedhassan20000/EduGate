@@ -1,0 +1,37 @@
+[
+    {
+      "courseCode": "ST102",
+      "courseName": "Introduction to Programming",
+      "instructorId": "inst001"
+    },
+    {
+      "courseCode": "DB202",
+      "courseName": "Database Systems",
+      "instructorId": "inst002"
+    },
+    {
+      "courseCode": "EN101",
+      "courseName": "Computer Networks",
+      "instructorId": "inst003"
+    },
+    {
+      "courseCode": "MATH101",
+      "courseName": "Operating Systems",
+      "instructorId": "inst004"
+    },
+    {
+      "courseCode": "MATH012",
+      "courseName": "Web Development",
+      "instructorId": "inst005"
+    },
+    {
+      "courseCode": "HS205",
+      "courseName": "Artificial Intelligence",
+      "instructorId": "inst006"
+    },
+    {
+      "courseCode": "PSY210",
+      "courseName": "Software Engineering",
+      "instructorId": "inst007"
+    }
+  ]

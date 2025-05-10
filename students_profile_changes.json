@@ -1,0 +1,38 @@
+[
+    {
+      "id": "202300001",
+      "email": "ahmed1@student.com",
+      "password": "pass123",
+      "lastUpdate": "2025-05-07"
+    },
+    {
+      "id": "202300002",
+      "email": "mona2@student.com",
+      "password": "pass123",
+      "lastUpdate": "2025-05-07"
+    },
+    {
+      "id": "202300003",
+      "email": "salma3@student.com",
+      "password": "pass123",
+      "lastUpdate": "2025-05-07"
+    },
+    {
+      "id": "202300004",
+      "email": "youssef4@student.com",
+      "password": "pass123",
+      "lastUpdate": "2025-05-07"
+    },
+    {
+      "id": "202300005",
+      "email": "nour5@student.com",
+      "password": "pass123",
+      "lastUpdate": "2025-05-07"
+    },
+    {
+      "id": "202300006",
+      "email": "rana6@student.com",
+      "password": "pass123",
+      "lastUpdate": "2025-05-07"
+    }
+  ]

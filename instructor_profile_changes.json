@@ -1,0 +1,23 @@
+[
+    {
+      "id": "inst001",
+      "name": "Dr. Ahmed Saleh",
+      "email": "ahmed.saleh@example.com",
+      "password": "ahm12345",
+      "date": "2025-05-07T18:30:00.000Z"
+    },
+    {
+      "id": "inst002",
+      "name": "Prof. Layla Mansour",
+      "email": "layla.mansour@example.com",
+      "password": "layla987",
+      "date": "2025-05-07T18:45:00.000Z"
+    },
+    {
+      "id": "inst003",
+      "name": "Mr. Samir Hossam",
+      "email": "samir.hossam@example.com",
+      "password": "sam2025",
+      "date": "2025-05-07T19:00:00.000Z"
+    }
+  ]

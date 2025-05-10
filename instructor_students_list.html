@@ -117,10 +117,8 @@
     let currentEditIndex = null;
   
     document.addEventListener("DOMContentLoaded", () => {
-      const saved = localStorage.getItem("studentsData");
-      if (saved) {
-        renderStudentsTable(JSON.parse(saved));
-      }
+      const resitList = JSON.parse(localStorage.getItem("resitApplied")) || [];
+      renderStudentsTable(resitList);
     });
   
     function capitalizeName(name) {
@@ -134,21 +132,45 @@
       const table = document.getElementById("studentsTable");
       table.innerHTML = "";
       data.forEach((student, index) => {
-        const formattedName = capitalizeName(student.name);
+        const formattedName = capitalizeName(student.name || "-");
+        const course = student.course || "N/A";
+        const number = student.number || "N/A";
+        const grade = student.grade || "N/A";
+
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${index + 1}</td>
           <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${formattedName}</div></td>
-          <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${student.number || ''}</div></td>
-          <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${student.grade}</div></td>
-          <td>
-            <button class="btn btn-outline-primary btn-sm me-2" onclick="openEditPopup(${index})">Edit</button>
-            
-          </td>
-        `;
+          <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${course}</div></td>
+          <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${number}</div></td>
+          <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${grade}</div></td>
+          <td><button class="btn btn-success btn-sm" onclick="toggleConfirm(${index})">Confirm</button></td>
+        `;  
         table.appendChild(row);
-      });
-    }
+    });
+   }
+
+ function renderStudentsTable(data) {
+  const table = document.getElementById("studentsTable");
+  table.innerHTML = "";
+  data.forEach((student, index) => {
+    const formattedName = capitalizeName(student.name || "-");
+    const course = student.course || "N/A";
+    const number = student.number || "N/A";
+    const grade = student.grade || "N/A";
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${formattedName}</div></td>
+      <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${course}</div></td>
+      <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${number}</div></td>
+      <td><div class="rounded-pill bg-secondary-subtle px-3 py-2 fw-bold text-dark">${grade}</div></td>
+      <td><button class="btn btn-success btn-sm" onclick="toggleConfirm(${index})">Confirm</button></td>
+    `;
+    table.appendChild(row);
+  });
+}
   
     function deleteStudent(index) {
       const students = JSON.parse(localStorage.getItem("studentsData")) || [];

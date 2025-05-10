@@ -133,107 +133,122 @@
   
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // دالة حفظ التعديلات على بروفايل الطالب
-    function saveProfileChanges() {
-      const email = document.getElementById("editEmail")?.value || "";
-      const password = document.getElementById("editPassword")?.value || "";
-      const newPassword = document.getElementById("editNewPassword")?.value || "";
-      const confirmPassword = document.getElementById("editConfirmPassword")?.value || "";
+<script>
+  // دالة حفظ التعديلات على بروفايل الطالب
+  function saveProfileChanges() {
+    const email = document.getElementById("editEmail")?.value || "";
+    const password = document.getElementById("editPassword")?.value || "";
+    const newPassword = document.getElementById("editNewPassword")?.value || "";
+    const confirmPassword = document.getElementById("editConfirmPassword")?.value || "";
 
-      if (newPassword && newPassword !== confirmPassword) {
-        alert("New passwords do not match!");
-        return;
-      }
-
-      let profile = {};
-      try {
-        profile = JSON.parse(localStorage.getItem("studentProfile")) || {};
-      } catch (error) {
-        console.error("Error parsing studentProfile:", error);
-        profile = {};
-      }
-
-      profile.email = email;
-      profile.password = newPassword || password;
-
-      localStorage.setItem("studentProfile", JSON.stringify(profile));
-
-      updateProfileView();
-
-      const modalElement = document.getElementById('editProfileModal');
-      if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-
-      showSuccessToast();
+    if (newPassword && newPassword !== confirmPassword) {
+      alert("New passwords do not match!");
+      return;
     }
 
-    // دالة تحديث عرض بيانات الطالب على الصفحة
-    function updateProfileView() {
-      let profile = {};
-      try {
-        profile = JSON.parse(localStorage.getItem("studentProfile")) || {};
-      } catch (error) {
-        console.error("Error parsing studentProfile:", error);
-        profile = {};
-      }
-
-      const nameField = document.getElementById("displayName");
-      const emailField = document.getElementById("displayEmail");
-      const numberField = document.getElementById("displayStudentNumber");
-      const passwordField = document.getElementById("displayPassword");
-
-      if (nameField) nameField.value = profile.name || "-";
-      if (emailField) emailField.value = profile.email || "-";
-      if (numberField) numberField.value = profile.studentNumber || "-";
-
-      if (passwordField) {
-        let stars = "";
-        if (profile.password) {
-          const visible = profile.password.substring(0, 3);
-          const totalLength = profile.password.length;
-          stars = visible + "*".repeat(Math.max(totalLength - 3, 0));
-        }
-        passwordField.value = stars || "-";
-      }
-
-      const editName = document.getElementById("editName");
-      const editEmail = document.getElementById("editEmail");
-      const editStudentNumber = document.getElementById("editStudentNumber");
-      const editPassword = document.getElementById("editPassword");
-
-      if (editName) editName.value = profile.name || "";
-      if (editEmail) editEmail.value = profile.email || "";
-      if (editStudentNumber) editStudentNumber.value = profile.studentNumber || "";
-      if (editPassword) editPassword.value = profile.password || "";
+    let profile = {};
+    try {
+      profile = JSON.parse(localStorage.getItem("studentProfile")) || {};
+      profile.studentNumber = profile.id; // لحفظ الرقم في studentNumber
+    } catch (error) {
+      console.error("Error parsing studentProfile:", error);
+      profile = {};
     }
 
-    // دالة تسجيل الخروج
-    function logout() {
-      localStorage.clear();
-      window.location.href = "index.html";
-    }
+    profile.email = email;
+    profile.password = newPassword || password;
 
-    // دالة عرض توست النجاح
-    function showSuccessToast() {
-      const toast = document.getElementById("successToast");
-      if (toast) {
-        toast.classList.add("show");
-        setTimeout(() => {
-          toast.classList.remove("show");
-        }, 2500);
-      }
-    }
+    localStorage.setItem("studentProfile", JSON.stringify(profile));
 
-    // عند تحميل الصفحة مباشرة، يتم عرض بيانات الطالب
-    document.addEventListener("DOMContentLoaded", function() {
-      updateProfileView();
+    // ✅ تخزين التعديلات في localStorage لتتمكن من نسخها إلى JSON يدويًا
+    let changes = JSON.parse(localStorage.getItem("profileChangesLog")) || [];
+    changes.push({
+      id: profile.id || "unknown",
+      name: profile.name || "",
+      studentNumber: profile.studentNumber || "",
+      email: profile.email,
+      password: profile.password,
+      date: new Date().toISOString()
     });
-  </script>
+    localStorage.setItem("profileChangesLog", JSON.stringify(changes));
+
+    // ✅ طباعة نسخة JSON إلى الـ console لنسخها إلى الملف لاحقًا
+    console.log("Updated students_profile_changes.json:", JSON.stringify(changes, null, 2));
+
+    updateProfileView();
+
+    const modalElement = document.getElementById('editProfileModal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+
+    showSuccessToast();
+  }
+
+  // دالة تحديث عرض بيانات الطالب على الصفحة
+  function updateProfileView() {
+    let profile = {};
+    try {
+      profile = JSON.parse(localStorage.getItem("studentProfile")) || {};
+    } catch (error) {
+      console.error("Error parsing studentProfile:", error);
+      profile = {};
+    }
+
+    const nameField = document.getElementById("displayName");
+    const emailField = document.getElementById("displayEmail");
+    const numberField = document.getElementById("displayStudentNumber");
+    const passwordField = document.getElementById("displayPassword");
+
+    if (nameField) nameField.value = profile.name || "-";
+    if (emailField) emailField.value = profile.email || "-";
+    if (numberField) numberField.value = profile.studentNumber || profile.id || "-";
+    if (passwordField) {
+      let stars = "";
+      if (profile.password) {
+        const visible = profile.password.substring(0, 3);
+        const totalLength = profile.password.length;
+        stars = visible + "*".repeat(Math.max(totalLength - 3, 0));
+      }
+      passwordField.value = stars || "-";
+    }
+
+    const editName = document.getElementById("editName");
+    const editEmail = document.getElementById("editEmail");
+    const editStudentNumber = document.getElementById("editStudentNumber");
+    const editPassword = document.getElementById("editPassword");
+
+    if (editName) editName.value = profile.name || "";
+    if (editEmail) editEmail.value = profile.email || "";
+    if (editStudentNumber) editStudentNumber.value = profile.studentNumber || profile.id || "";
+    if (editPassword) editPassword.value = profile.password || "";
+  }
+
+  // دالة تسجيل الخروج
+  function logout() {
+    localStorage.clear();
+    window.location.href = "index.html";
+  }
+
+  // دالة عرض توست النجاح
+  function showSuccessToast() {
+    const toast = document.getElementById("successToast");
+    if (toast) {
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2500);
+    }
+  }
+
+  // عند تحميل الصفحة مباشرة، يتم عرض بيانات الطالب
+  document.addEventListener("DOMContentLoaded", function () {
+    updateProfileView();
+  });
+</script>
 
 </body>
 </html>

@@ -59,80 +59,71 @@
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // دالة تسجيل الخروج
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
   
-  // دالة تسجيل الخروج
-  function logout() {
-    localStorage.clear();
-    window.location.href = "index.html";
-  }
-
-  // دالة عرض ملخص الامتحانات الريتيك
-  function showRetakeSummary() {
-    const list = document.getElementById("retakeList");
-    list.innerHTML = "";
-
-    let courses = [];
-    let examDetails = {};
-
-    try {
-      courses = JSON.parse(localStorage.getItem("appliedCourses")) || [];
-    } catch (error) {
-      console.error("Error parsing appliedCourses from localStorage:", error);
-      courses = [];
-    }
-
-    try {
-      examDetails = JSON.parse(localStorage.getItem("examDetails")) || {};
-    } catch (error) {
-      console.error("Error parsing examDetails from localStorage:", error);
-      examDetails = {};
-    }
-
-    if (courses.length === 0) {
-      const li = document.createElement("li");
-      li.textContent = "No retake exams applied.";
-      li.className = "list-group-item text-center text-muted";
-      list.appendChild(li);
-    } else {
-      courses.forEach(code => {
-        const details = examDetails[code] || {};
+    // دالة عرض ملخص الامتحانات الريتيك
+    function showRetakeSummary() {
+      const list = document.getElementById("retakeList");
+      list.innerHTML = "";
+  
+      let courses = [];
+      let examDetails = {};
+  
+      try {
+        courses = JSON.parse(localStorage.getItem("appliedCourses")) || [];
+      } catch (error) {
+        console.error("Error parsing appliedCourses from localStorage:", error);
+        courses = [];
+      }
+  
+      try {
+        examDetails = JSON.parse(localStorage.getItem("examDetails")) || {};
+      } catch (error) {
+        console.error("Error parsing examDetails from localStorage:", error);
+        examDetails = {};
+      }
+  
+      if (courses.length === 0) {
         const li = document.createElement("li");
-        li.className = "list-group-item";
-        li.innerHTML = `<strong>${code}</strong><br>
-          <small class="text-muted">
-            Time: ${details.time || 'N/A'} |
-            Date: ${details.date || 'N/A'} |
-            Room: ${details.room || 'N/A'} |
-            ${details.description || 'No details available'}
-          </small>`;
+        li.textContent = "No retake exams applied.";
+        li.className = "list-group-item text-center text-muted";
         list.appendChild(li);
-      });
+      } else {
+        courses.forEach(code => {
+          const details = examDetails[code] || {};
+          const li = document.createElement("li");
+          li.className = "list-group-item";
+          li.innerHTML = `<strong>${code}</strong><br>
+            <small class="text-muted">
+              Time: ${details.time || 'N/A'} |
+              Date: ${details.date || 'N/A'} |
+              Room: ${details.room || 'N/A'}
+              ${details.description || 'No details available'}
+            </small>`;
+          list.appendChild(li);
+        });
+      }
+  
+      const modal = new bootstrap.Modal(document.getElementById("retakeModal"));
+      modal.show();
     }
-
-    const modal = new bootstrap.Modal(document.getElementById("retakeModal"));
-    modal.show();
-  }
-
-  // عرض اسم الطالب
-  document.addEventListener("DOMContentLoaded", () => {
-    const nameElement = document.getElementById("studentName");
-    if (!nameElement) return; // تأمين لو العنصر مش موجود
-
-    let profile = {};
-    try {
-      profile = JSON.parse(localStorage.getItem("studentProfile")) || {};
-    } catch (error) {
-      console.error("Error parsing studentProfile from localStorage:", error);
-      profile = {};
-    }
-
-    if (profile.name) {
-      nameElement.textContent = profile.name;
-    } else {
-      nameElement.textContent = "Student"; // fallback default
-    }
-  });
-</script>
+  
+    // عرض اسم الطالب من localStorage مباشرة
+    document.addEventListener("DOMContentLoaded", () => {
+      const nameElement = document.getElementById("studentName");
+      const profile = JSON.parse(localStorage.getItem("studentProfile")) || {};
+  
+      if (profile && profile.name) {
+        nameElement.textContent = profile.name;
+      } else {
+        nameElement.textContent = "Student";
+      }
+    });
+  </script>
 
 </body>
 </html>

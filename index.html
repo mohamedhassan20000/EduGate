@@ -57,57 +57,80 @@
   </div>
 
 
-  <script>
-    // ✨ سطر تجريبي مؤقت عشان الموقع يشتغل
-    if (!localStorage.getItem('userType')) {
-      localStorage.setItem('userType', 'student');
-    }
-    </script>
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function redirectToDashboard(event) {
-      event.preventDefault();
-      const inputEmail = document.getElementById("emailInput").value.trim();
-      const inputPassword = document.getElementById("passwordInput").value;
-      const savedProfile = JSON.parse(localStorage.getItem("studentProfile"));
-      if (!savedProfile) {
-        alert("No account found. Please contact admin.");
-        return;
-      }
-      if (inputEmail === savedProfile.email && inputPassword === savedProfile.password) {
-        window.location.href = "home.html";
-      } else {
-        alert("Incorrect email or password.");
-      }
+
+<script>
+  async function redirectToDashboard(event) {
+    event.preventDefault();
+
+    const inputEmail = document.getElementById("emailInput").value.trim();
+    const inputPassword = document.getElementById("passwordInput").value.trim();
+
+    // ✅ تحميل الملفات من نفس المسار (بدون data/)
+    const [students, instructors, secretary] = await Promise.all([
+      fetch('students.json').then(res => res.json()),
+      fetch('instructors.json').then(res => res.json()),
+      fetch('secretary.json').then(res => res.json())
+    ]);
+
+    // ✅ تحقق من الطالب
+    const student = students.find(user => user.email === inputEmail && user.password === inputPassword);
+    if (student) {
+      localStorage.setItem("userType", "student");
+      localStorage.setItem("userId", student.id);
+      localStorage.setItem("userEmail", student.email);
+      localStorage.setItem("studentProfile", JSON.stringify(student));
+      localStorage.setItem("studentNumber", student.id);
+      return window.location.href = "home.html";
     }
 
-    function sendResetCode() {
-      const email = document.getElementById("resetEmail").value.trim();
-      const profile = JSON.parse(localStorage.getItem("studentProfile"));
-      if (!profile || profile.email !== email) return alert("Email not found.");
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      localStorage.setItem("resetCode", code);
-      alert("Code sent to your email (simulated): " + code);
-      document.getElementById("codeSection").classList.remove("d-none");
+    // ✅ تحقق من المحاضر
+    const instructor = instructors.find(user => user.email === inputEmail && user.password === inputPassword);
+    if (instructor) {
+      localStorage.setItem("userType", "instructor");
+      localStorage.setItem("userId", instructor.id);
+      localStorage.setItem("userEmail", instructor.email);
+      localStorage.setItem("instructorProfile", JSON.stringify(instructor));
+      return window.location.href = "instructor_home.html";
     }
 
-    function verifyAndResetPassword() {
-      const code = document.getElementById("resetCode").value.trim();
-      const pass1 = document.getElementById("newPass1").value.trim();
-      const pass2 = document.getElementById("newPass2").value.trim();
-      const savedCode = localStorage.getItem("resetCode");
-
-      if (code !== savedCode) return alert("Invalid code");
-      if (pass1.length < 4 || pass1 !== pass2) return alert("Passwords must match and be at least 4 characters long");
-
-      const profile = JSON.parse(localStorage.getItem("studentProfile"));
-      profile.password = pass1;
-      localStorage.setItem("studentProfile", JSON.stringify(profile));
-      alert("Password reset successful");
-      document.getElementById("resetModal").classList.remove("show");
-      document.querySelector(".modal-backdrop").remove();
+    // ✅ تحقق من السكرتير
+    const sec = secretary.find(user => user.email === inputEmail && user.password === inputPassword);
+    if (sec) {
+      localStorage.setItem("userType", "secretary");
+      localStorage.setItem("userId", sec.id);
+      localStorage.setItem("userEmail", sec.email);
+      localStorage.setItem("secretaryProfile", JSON.stringify(sec));
+      localStorage.setItem("facultySecretaryName", sec.name); // لعرض الاسم
+      return window.location.href = "faculty_secretary_home.html";
     }
-  </script>
+
+    // ❌ في حالة عدم وجود تطابق
+    alert("Incorrect email or password.");
+  }
+
+  function sendResetCode() {
+    const email = document.getElementById("resetEmail").value.trim();
+    const userEmail = localStorage.getItem("userEmail");
+    if (!userEmail || email !== userEmail) return alert("Email not found.");
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    localStorage.setItem("resetCode", code);
+    alert("Code sent to your email (simulated): " + code);
+    document.getElementById("codeSection").classList.remove("d-none");
+  }
+
+  function verifyAndResetPassword() {
+    const code = document.getElementById("resetCode").value.trim();
+    const pass1 = document.getElementById("newPass1").value.trim();
+    const pass2 = document.getElementById("newPass2").value.trim();
+    const savedCode = localStorage.getItem("resetCode");
+
+    if (code !== savedCode) return alert("Invalid code");
+    if (pass1.length < 4 || pass1 !== pass2) return alert("Passwords must match and be at least 4 characters long");
+
+    alert("Password reset successful (simulated)");
+  }
+</script>
 </body>
 </html>

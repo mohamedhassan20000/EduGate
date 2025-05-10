@@ -1,0 +1,44 @@
+[
+    {
+      "id": "202300157",
+      "name": "Dr. Ayman Fouad",
+      "email": "ayman@instructor.com",
+      "password": "inst123"
+    },
+    {
+      "id": "202301248",
+      "name": "Dr. Sara Kamal",
+      "email": "sara@instructor.com",
+      "password": "inst123"
+    },
+    {
+      "id": "202302369",
+      "name": "Dr. Omar Mahmoud",
+      "email": "omar@instructor.com",
+      "password": "inst123"
+    },
+    {
+      "id": "202303471",
+      "name": "Dr. Huda Elsayed",
+      "email": "huda@instructor.com",
+      "password": "inst123"
+    },
+    {
+      "id": "202304582",
+      "name": "Dr. Tarek Lotfy",
+      "email": "tarek@instructor.com",
+      "password": "inst123"
+    },
+    {
+      "id": "202304582",
+      "name": "Dr. Laila Nabil",
+      "email": "laila@instructor.com",
+      "password": "inst123"
+    },
+    {
+      "id": "202306804",
+      "name": "Dr. Khaled Barakat",
+      "email": "khaled@instructor.com",
+      "password": "inst123"
+    }
+  ]

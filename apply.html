@@ -71,9 +71,14 @@
     const urlParams = new URLSearchParams(window.location.search);
     const courseCode = urlParams.get("course");
     const studentGrade = urlParams.get("grade") || "FF";
+    if (!courseCode) {
+    alert("No course selected.");
+    window.location.href = "courses.html";
+    }
   
-    const studentName = localStorage.getItem("studentName") || "Student";
-    const studentNumber = localStorage.getItem("studentNumber") || "000000";
+    const student = JSON.parse(localStorage.getItem("studentProfile")) || {};
+    const studentName = student.name || "Student";
+    const studentNumber = student.id || "000000";
   
     document.getElementById("courseCode").value = courseCode || "N/A";
     document.getElementById("gradeField").value = studentGrade || "N/A";
@@ -82,45 +87,51 @@
     const allExamDetails = JSON.parse(localStorage.getItem("examDetails")) || {};
     if (courseCode && allExamDetails[courseCode]) {
       const details = allExamDetails[courseCode];
-      document.getElementById("examTime").value = details.time || "N/A";
+      document.getElementById("examTime").value = details.examTime || "N/A";
       document.getElementById("examDate").value = details.date || "2025-04-25";
       document.getElementById("roomField").value = details.room || "N/A";
       document.getElementById("examDetailsBox").innerText = details.description || "";
+      document.getElementById("examDetailsBox").innerText =
+      localStorage.getItem(`${courseCode}_desc`) || document.getElementById("examDetailsBox").innerText;
     }
   
     function submitApplication() {
-      if (!courseCode) return;
+  if (!courseCode) return;
+
+  let appliedCourses = JSON.parse(localStorage.getItem("appliedCourses")) || [];
+  if (!appliedCourses.includes(courseCode)) {
+    appliedCourses.push(courseCode);
+    localStorage.setItem("appliedCourses", JSON.stringify(appliedCourses));
+  }
+
+  // ✅ نعلّم أنه تم التقديم حاليًا
+  localStorage.setItem("justApplied", courseCode);
+
+  let resitList = JSON.parse(localStorage.getItem("resitApplied")) || [];
+  resitList = resitList.filter(item => !(item.name === studentName && item.course === courseCode));
+  resitList.push({
+    name: studentName,
+    grade: studentGrade,
+    number: studentNumber,
+    course: courseCode,
+    confirmed: false
+  });
+  localStorage.setItem("resitApplied", JSON.stringify(resitList));
+
+  const examDetails = JSON.parse(localStorage.getItem("examDetails")) || {};
+  examDetails[courseCode] = {
+    time: document.getElementById("examTime").value,
+    date: document.getElementById("examDate").value,
+    room: document.getElementById("roomField").value,
+    description: document.getElementById("examDetailsBox").innerText.trim()
+  };
+  localStorage.setItem("examDetails", JSON.stringify(examDetails));
+
+  // 🔁 بعد كل شيء، نعود إلى صفحة الكورسات
+  window.location.href = "courses.html";
+}
   
-      let appliedCourses = JSON.parse(localStorage.getItem("appliedCourses")) || [];
-      if (!appliedCourses.includes(courseCode)) {
-        appliedCourses.push(courseCode);
-        localStorage.setItem("appliedCourses", JSON.stringify(appliedCourses));
-      }
-  
-      let resitList = JSON.parse(localStorage.getItem("resitApplied")) || [];
-      resitList = resitList.filter(item => !(item.name === studentName && item.course === courseCode));
-      resitList.push({
-        name: studentName,
-        grade: studentGrade,
-        number: studentNumber,
-        course: courseCode,
-        confirmed: false
-      });
-      localStorage.setItem("resitApplied", JSON.stringify(resitList));
-  
-      // ✅ حفظ بيانات الامتحان كما ظهرت للمستخدم
-      const examDetails = JSON.parse(localStorage.getItem("examDetails")) || {};
-      examDetails[courseCode] = {
-        time: document.getElementById("examTime").value,
-        date: document.getElementById("examDate").value,
-        room: document.getElementById("roomField").value,
-        description: document.getElementById("examDetailsBox").innerText.trim()
-      };
-      localStorage.setItem("examDetails", JSON.stringify(examDetails));
-  
-      window.location.href = "student_courses.html";
-    }
-  
+     
   
   </script>
 </body>
